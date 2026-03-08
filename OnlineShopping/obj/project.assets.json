@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\Visual Studio Projects\\OnlineShopping\\OnlineShopping.csproj",
+      "projectUniqueName": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\OnlineShopping.csproj",
       "projectName": "OnlineShopping",
-      "projectPath": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\Visual Studio Projects\\OnlineShopping\\OnlineShopping.csproj",
+      "projectPath": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\OnlineShopping.csproj",
       "packagesPath": "C:\\Users\\Rusell\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\Visual Studio Projects\\OnlineShopping\\obj\\",
+      "outputPath": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

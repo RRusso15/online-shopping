@@ -1,0 +1,15 @@
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\bin\Debug\net10.0\OnlineShopping.exe
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\bin\Debug\net10.0\OnlineShopping.deps.json
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\bin\Debug\net10.0\OnlineShopping.runtimeconfig.json
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\bin\Debug\net10.0\OnlineShopping.dll
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\bin\Debug\net10.0\OnlineShopping.pdb
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.AssemblyInfoInputs.cache
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.AssemblyInfo.cs
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.csproj.CoreCompileInputs.cache
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.sourcelink.json
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.dll
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\refint\OnlineShopping.dll
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.pdb
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\OnlineShopping.genruntimeconfig.cache
+C:\Users\Rusell\Desktop\Dev\GradProgram\OnlineShoppingConsoleApp\online-shopping\OnlineShopping\obj\Debug\net10.0\ref\OnlineShopping.dll
