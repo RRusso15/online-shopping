@@ -21,7 +21,7 @@ public sealed class AdminMenu
     {
         while (true)
         {
-            Console.WriteLine();
+            Console.Clear();
             Console.WriteLine($"=== ADMIN MENU ({admin.Username}) ===");
             Console.WriteLine("1. Add Product");
             Console.WriteLine("2. Update Product");

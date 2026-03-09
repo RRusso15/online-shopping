@@ -1,0 +1,121 @@
+{
+  "$id": "1",
+  "Users": {
+    "$id": "2",
+    "$values": [
+      {
+        "$id": "3",
+        "$type": "administrator",
+        "Id": 1,
+        "Username": "admin",
+        "Password": "admin123",
+        "Role": 2
+      },
+      {
+        "$id": "4",
+        "$type": "customer",
+        "WalletBalance": 5000,
+        "Cart": {
+          "$id": "5",
+          "CustomerUsername": "customer",
+          "Items": {
+            "$id": "6",
+            "$values": []
+          },
+          "Total": 0
+        },
+        "Orders": {
+          "$id": "7",
+          "$values": []
+        },
+        "Id": 2,
+        "Username": "customer",
+        "Password": "cust123",
+        "Role": 1
+      }
+    ]
+  },
+  "Products": {
+    "$id": "8",
+    "$values": [
+      {
+        "$id": "9",
+        "Id": 1,
+        "Name": "Laptop Pro 14",
+        "Category": "Electronics",
+        "Description": "14-inch productivity laptop",
+        "Price": 1999.99,
+        "StockQuantity": 10,
+        "Reviews": {
+          "$id": "10",
+          "$values": []
+        },
+        "AverageRating": 0
+      },
+      {
+        "$id": "11",
+        "Id": 2,
+        "Name": "Wireless Headphones",
+        "Category": "Electronics",
+        "Description": "Noise-cancelling over-ear headphones",
+        "Price": 249.50,
+        "StockQuantity": 25,
+        "Reviews": {
+          "$id": "12",
+          "$values": []
+        },
+        "AverageRating": 0
+      },
+      {
+        "$id": "13",
+        "Id": 3,
+        "Name": "Office Chair",
+        "Category": "Furniture",
+        "Description": "Ergonomic chair with lumbar support",
+        "Price": 179.99,
+        "StockQuantity": 7,
+        "Reviews": {
+          "$id": "14",
+          "$values": []
+        },
+        "AverageRating": 0
+      },
+      {
+        "$id": "15",
+        "Id": 4,
+        "Name": "Running Shoes",
+        "Category": "Sports",
+        "Description": "Lightweight training shoes",
+        "Price": 89.99,
+        "StockQuantity": 30,
+        "Reviews": {
+          "$id": "16",
+          "$values": []
+        },
+        "AverageRating": 0
+      },
+      {
+        "$id": "17",
+        "Id": 5,
+        "Name": "Coffee Maker",
+        "Category": "Home",
+        "Description": "Automatic drip coffee machine",
+        "Price": 59.99,
+        "StockQuantity": 5,
+        "Reviews": {
+          "$id": "18",
+          "$values": []
+        },
+        "AverageRating": 0
+      }
+    ]
+  },
+  "Orders": {
+    "$id": "19",
+    "$values": []
+  },
+  "Payments": {
+    "$id": "20",
+    "$values": []
+  }
+}

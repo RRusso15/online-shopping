@@ -66,6 +66,7 @@ public sealed class ProductService : IProductService
 
         var product = new Product(_context.NextProductId(), name, category, description, price, stockQuantity);
         _context.Products.Add(product);
+        _context.SaveChanges();
         return product;
     }
 
@@ -82,6 +83,7 @@ public sealed class ProductService : IProductService
         product.Category = category;
         product.Description = description;
         product.Price = price;
+        _context.SaveChanges();
     }
 
     public bool DeleteProduct(int productId)
@@ -92,7 +94,13 @@ public sealed class ProductService : IProductService
             return false;
         }
 
-        return _context.Products.Remove(product);
+        var removed = _context.Products.Remove(product);
+        if (removed)
+        {
+            _context.SaveChanges();
+        }
+
+        return removed;
     }
 
     public void RestockProduct(int productId, int quantityToAdd)
@@ -104,6 +112,7 @@ public sealed class ProductService : IProductService
 
         var product = GetProductById(productId) ?? throw new KeyNotFoundException("Product not found.");
         product.StockQuantity += quantityToAdd;
+        _context.SaveChanges();
     }
 
     public void AddReview(int productId, Customer customer, int rating, string comment)
@@ -135,6 +144,7 @@ public sealed class ProductService : IProductService
         }
 
         product.Reviews.Add(new Review(_context.NextReviewId(), productId, customer.Username, rating, comment));
+        _context.SaveChanges();
     }
 
     public IEnumerable<Product> GetLowStockProducts(int threshold)

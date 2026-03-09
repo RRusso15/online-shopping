@@ -21,6 +21,7 @@ public sealed class PaymentService : IPaymentService
         }
 
         customer.WalletBalance += amount;
+        _context.SaveChanges();
     }
 
     public Payment ProcessPayment(Customer customer, Order order)
@@ -36,6 +37,7 @@ public sealed class PaymentService : IPaymentService
                 "Insufficient wallet funds.");
 
             _context.Payments.Add(failed);
+            _context.SaveChanges();
             throw new InvalidOperationException("Insufficient wallet funds for checkout.");
         }
 
@@ -49,6 +51,7 @@ public sealed class PaymentService : IPaymentService
             "Payment successful.");
 
         _context.Payments.Add(success);
+        _context.SaveChanges();
         return success;
     }
 }

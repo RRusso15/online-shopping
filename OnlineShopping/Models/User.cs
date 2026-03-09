@@ -1,5 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace OnlineShopping.Models;
 
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(Customer), "customer")]
+[JsonDerivedType(typeof(Administrator), "administrator")]
 public abstract class User
 {
     protected User(int id, string username, string password, UserRole role)

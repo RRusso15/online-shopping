@@ -35,6 +35,7 @@ public sealed class AuthService : IAuthService
         };
 
         _context.Users.Add(user);
+        _context.SaveChanges();
         message = "Registration successful.";
         return true;
     }

@@ -8,7 +8,7 @@ SeedData.Initialize(context);
 
 IAuthService authService = new AuthService(context);
 IProductService productService = new ProductService(context);
-ICartService cartService = new CartService(productService);
+ICartService cartService = new CartService(productService, context);
 IPaymentService paymentService = new PaymentService(context);
 IOrderService orderService = new OrderService(context, paymentService);
 IReportService reportService = new ReportService(context);
@@ -17,6 +17,7 @@ var customerMenu = new CustomerMenu(productService, cartService, orderService, p
 var adminMenu = new AdminMenu(productService, orderService, reportService);
 var mainMenu = new MainMenu(authService, customerMenu, adminMenu);
 
+Console.Clear();
 Console.WriteLine("========================================");
 Console.WriteLine(" Online Shopping Backend System (Console)");
 Console.WriteLine("========================================");

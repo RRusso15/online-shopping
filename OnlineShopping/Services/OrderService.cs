@@ -49,12 +49,14 @@ public sealed class OrderService : IOrderService
             order.Status = OrderStatus.Paid;
             customer.Orders.Add(order);
             customer.Cart.Items.Clear();
+            _context.SaveChanges();
 
             return (order, payment);
         }
         catch
         {
             _context.Orders.Remove(order);
+            _context.SaveChanges();
             throw;
         }
     }
@@ -81,5 +83,6 @@ public sealed class OrderService : IOrderService
     {
         var order = GetOrderById(orderId) ?? throw new KeyNotFoundException("Order not found.");
         order.Status = newStatus;
+        _context.SaveChanges();
     }
 }

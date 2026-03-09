@@ -28,5 +28,7 @@ public static class SeedData
             new Product(context.NextProductId(), "Running Shoes", "Sports", "Lightweight training shoes", 89.99m, 30),
             new Product(context.NextProductId(), "Coffee Maker", "Home", "Automatic drip coffee machine", 59.99m, 5)
         });
+
+        context.SaveChanges();
     }
 }
