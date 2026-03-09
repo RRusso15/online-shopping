@@ -25,94 +25,84 @@ public sealed class CustomerMenu
 
     public void Run(Customer customer)
     {
+        var commands = BuildCommands(customer);
+
         while (true)
         {
             Console.Clear();
             Console.WriteLine("=== CUSTOMER MENU ===");
-            Console.WriteLine("1. Browse Products");
-            Console.WriteLine("2. Search Products");
-            Console.WriteLine("3. Add Product to Cart");
-            Console.WriteLine("4. View Cart");
-            Console.WriteLine("5. Update Cart");
-            Console.WriteLine("6. Checkout");
-            Console.WriteLine("7. View Wallet Balance");
-            Console.WriteLine("8. Add Wallet Funds");
-            Console.WriteLine("9. View Order History");
-            Console.WriteLine("10. Track Orders");
-            Console.WriteLine("11. Review Products");
-            Console.WriteLine("12. Logout");
-
-            var choice = InputHelper.ReadInt("Choose an option: ", 1, 12);
-
-            try
+            foreach (var command in commands.OrderBy(c => c.Key))
             {
-                switch (choice)
-                {
-                    case 1:
-                        BrowseProducts();
-                        break;
-                    case 2:
-                        SearchProducts();
-                        break;
-                    case 3:
-                        AddProductToCart(customer);
-                        break;
-                    case 4:
-                        ViewCart(customer);
-                        break;
-                    case 5:
-                        UpdateCart(customer);
-                        break;
-                    case 6:
-                        Checkout(customer);
-                        break;
-                    case 7:
-                        Console.WriteLine($"Wallet Balance: {customer.WalletBalance:C}");
-                        break;
-                    case 8:
-                        AddWalletFunds(customer);
-                        break;
-                    case 9:
-                        ViewOrderHistory(customer);
-                        break;
-                    case 10:
-                        TrackOrder(customer);
-                        break;
-                    case 11:
-                        ReviewProducts(customer);
-                        break;
-                    case 12:
-                        Console.WriteLine("Logged out.");
-                        return;
-                }
+                Console.WriteLine($"{command.Key}. {command.Value.Label}");
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException || ex is FormatException)
+
+            var choice = InputHelper.ReadInt("Choose an option: ", 1, commands.Count);
+            var result = ExecuteCommand(commands[choice]);
+            if (!string.IsNullOrWhiteSpace(result.Message))
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine(result.Message);
+            }
+
+            if (result.ShouldExit)
+            {
+                return;
             }
 
             InputHelper.Pause();
         }
     }
 
-    private void BrowseProducts()
+    private Dictionary<int, ICommand> BuildCommands(Customer customer)
+    {
+        return new Dictionary<int, ICommand>
+        {
+            [1] = new DelegateCommand("Browse Products", BrowseProducts),
+            [2] = new DelegateCommand("Search Products", SearchProducts),
+            [3] = new DelegateCommand("Add Product to Cart", () => AddProductToCart(customer)),
+            [4] = new DelegateCommand("View Cart", () => ViewCart(customer)),
+            [5] = new DelegateCommand("Update Cart", () => UpdateCart(customer)),
+            [6] = new DelegateCommand("Checkout", () => Checkout(customer)),
+            [7] = new DelegateCommand("View Wallet Balance", () => CommandResult.Ok($"Wallet Balance: {customer.WalletBalance:C}")),
+            [8] = new DelegateCommand("Add Wallet Funds", () => AddWalletFunds(customer)),
+            [9] = new DelegateCommand("View Order History", () => ViewOrderHistory(customer)),
+            [10] = new DelegateCommand("Track Orders", () => TrackOrder(customer)),
+            [11] = new DelegateCommand("Review Products", () => ReviewProducts(customer)),
+            [12] = new DelegateCommand("Cancel Order", () => CancelOrder(customer)),
+            [13] = new DelegateCommand("Logout", () => CommandResult.Exit("Logged out."))
+        };
+    }
+
+    private static CommandResult ExecuteCommand(ICommand command)
+    {
+        try
+        {
+            return command.Execute();
+        }
+        catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException || ex is FormatException)
+        {
+            return CommandResult.Fail($"Error: {ex.Message}");
+        }
+    }
+
+    private CommandResult BrowseProducts()
     {
         var products = _productService.GetAllProducts().ToList();
         if (products.Count == 0)
         {
-            Console.WriteLine("No products available.");
-            return;
+            return CommandResult.Ok("No products available.");
         }
 
-        Console.WriteLine();
+        var lines = new List<string>();
         foreach (var p in products)
         {
-            Console.WriteLine($"#{p.Id} | {p.Name} | {p.Category} | {p.Price:C} | Stock: {p.StockQuantity} | Rating: {p.AverageRating:F1} ({p.Reviews.Count})");
-            Console.WriteLine($"    {p.Description}");
+            lines.Add($"#{p.Id} | {p.Name} | {p.Category} | {p.Price:C} | Stock: {p.StockQuantity} | Rating: {p.AverageRating:F1} ({p.Reviews.Count})");
+            lines.Add($"    {p.Description}");
         }
+
+        return CommandResult.Ok(Environment.NewLine + string.Join(Environment.NewLine, lines));
     }
 
-    private void SearchProducts()
+    private CommandResult SearchProducts()
     {
         Console.WriteLine();
         Console.WriteLine("Leave any field blank to skip that filter.");
@@ -131,49 +121,55 @@ public sealed class CustomerMenu
         var results = _productService.SearchProducts(keyword, category, min, max).ToList();
         if (results.Count == 0)
         {
-            Console.WriteLine("No products match your search.");
-            return;
+            return CommandResult.Ok("No products match your search.");
         }
 
+        var lines = new List<string>();
         foreach (var p in results)
         {
-            Console.WriteLine($"#{p.Id} | {p.Name} | {p.Category} | {p.Price:C} | Stock: {p.StockQuantity}");
+            lines.Add($"#{p.Id} | {p.Name} | {p.Category} | {p.Price:C} | Stock: {p.StockQuantity}");
         }
+
+        return CommandResult.Ok(string.Join(Environment.NewLine, lines));
     }
 
-    private void AddProductToCart(Customer customer)
+    private CommandResult AddProductToCart(Customer customer)
     {
         var productId = InputHelper.ReadInt("Product ID: ", 1);
         var quantity = InputHelper.ReadInt("Quantity: ", 1);
         _cartService.AddToCart(customer, productId, quantity);
-        Console.WriteLine("Item added to cart.");
+        return CommandResult.Ok("Item added to cart.");
     }
 
-    private void ViewCart(Customer customer)
+    private CommandResult ViewCart(Customer customer)
     {
         var cart = _cartService.GetCart(customer);
         if (cart.Items.Count == 0)
         {
-            Console.WriteLine("Your cart is empty.");
-            return;
+            return CommandResult.Ok("Your cart is empty.");
         }
 
-        Console.WriteLine();
-        Console.WriteLine("=== CART ===");
+        var lines = new List<string> { "=== CART ===" };
         foreach (var item in cart.Items)
         {
-            Console.WriteLine($"#{item.Product.Id} {item.Product.Name} | {item.Quantity} x {item.Product.Price:C} = {item.Subtotal:C}");
+            lines.Add($"#{item.Product.Id} {item.Product.Name} | {item.Quantity} x {item.Product.Price:C} = {item.Subtotal:C}");
         }
 
-        Console.WriteLine($"Total: {cart.Total:C}");
+        lines.Add($"Total: {cart.Total:C}");
+        return CommandResult.Ok(Environment.NewLine + string.Join(Environment.NewLine, lines));
     }
 
-    private void UpdateCart(Customer customer)
+    private CommandResult UpdateCart(Customer customer)
     {
-        ViewCart(customer);
+        var viewCartResult = ViewCart(customer);
+        if (!string.IsNullOrWhiteSpace(viewCartResult.Message))
+        {
+            Console.WriteLine(viewCartResult.Message);
+        }
+
         if (customer.Cart.Items.Count == 0)
         {
-            return;
+            return CommandResult.Ok();
         }
 
         Console.WriteLine("1. Update quantity");
@@ -184,8 +180,7 @@ public sealed class CustomerMenu
         if (action == 3)
         {
             _cartService.ClearCart(customer);
-            Console.WriteLine("Cart cleared.");
-            return;
+            return CommandResult.Ok("Cart cleared.");
         }
 
         var productId = InputHelper.ReadInt("Product ID: ", 1);
@@ -194,71 +189,81 @@ public sealed class CustomerMenu
         {
             var quantity = InputHelper.ReadInt("New quantity (0 removes item): ", 0);
             _cartService.UpdateCartItem(customer, productId, quantity);
-            Console.WriteLine("Cart updated.");
+            return CommandResult.Ok("Cart updated.");
         }
-        else
-        {
-            _cartService.RemoveFromCart(customer, productId);
-            Console.WriteLine("Item removed.");
-        }
+
+        _cartService.RemoveFromCart(customer, productId);
+        return CommandResult.Ok("Item removed.");
     }
 
-    private void Checkout(Customer customer)
+    private CommandResult Checkout(Customer customer)
     {
-        var (order, payment) = _orderService.Checkout(customer);
-        Console.WriteLine($"Order #{order.Id} placed successfully. Total: {order.TotalAmount:C}");
-        Console.WriteLine($"Payment Status: {payment.Status} | Message: {payment.Message}");
-        Console.WriteLine($"Remaining Wallet Balance: {customer.WalletBalance:C}");
+        Console.WriteLine("Payment Method:");
+        Console.WriteLine("1. Wallet");
+        Console.WriteLine("2. Cash on Delivery");
+        var paymentChoice = InputHelper.ReadInt("Choose payment method: ", 1, 2);
+        var paymentMethod = paymentChoice == 2 ? PaymentMethod.CashOnDelivery : PaymentMethod.Wallet;
+
+        var (order, payment) = _orderService.Checkout(customer, paymentMethod);
+        var lines = new[]
+        {
+            $"Order #{order.Id} placed successfully. Total: {order.TotalAmount:C}",
+            $"Payment Status: {payment.Status} | Message: {payment.Message}",
+            $"Remaining Wallet Balance: {customer.WalletBalance:C}",
+            $"Current Order Status: {order.Status}"
+        };
+
+        return CommandResult.Ok(string.Join(Environment.NewLine, lines));
     }
 
-    private void AddWalletFunds(Customer customer)
+    private CommandResult AddWalletFunds(Customer customer)
     {
         var amount = InputHelper.ReadDecimal("Amount to add: ", 0.01m);
         _paymentService.AddWalletFunds(customer, amount);
-        Console.WriteLine($"Wallet updated. New balance: {customer.WalletBalance:C}");
+        return CommandResult.Ok($"Wallet updated. New balance: {customer.WalletBalance:C}");
     }
 
-    private void ViewOrderHistory(Customer customer)
+    private CommandResult ViewOrderHistory(Customer customer)
     {
         var orders = _orderService.GetCustomerOrders(customer.Username).ToList();
         if (orders.Count == 0)
         {
-            Console.WriteLine("No orders found.");
-            return;
+            return CommandResult.Ok("No orders found.");
         }
 
+        var lines = new List<string>();
         foreach (var order in orders)
         {
-            Console.WriteLine();
-            Console.WriteLine($"Order #{order.Id} | {order.OrderDate:g} | {order.Status} | Total: {order.TotalAmount:C}");
+            lines.Add(string.Empty);
+            lines.Add($"Order #{order.Id} | {order.OrderDate:g} | {order.Status} | Total: {order.TotalAmount:C}");
             foreach (var item in order.Items)
             {
-                Console.WriteLine($"  - {item.ProductName}: {item.Quantity} x {item.UnitPrice:C} = {item.Subtotal:C}");
+                lines.Add($"  - {item.ProductName}: {item.Quantity} x {item.UnitPrice:C} = {item.Subtotal:C}");
             }
         }
+
+        return CommandResult.Ok(string.Join(Environment.NewLine, lines));
     }
 
-    private void TrackOrder(Customer customer)
+    private CommandResult TrackOrder(Customer customer)
     {
         var orderId = InputHelper.ReadInt("Order ID: ", 1);
         var order = _orderService.GetOrderById(orderId);
 
         if (order is null || !order.CustomerUsername.Equals(customer.Username, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine("Order not found.");
-            return;
+            return CommandResult.Fail("Order not found.");
         }
 
-        Console.WriteLine($"Order #{order.Id} status: {order.Status}");
+        return CommandResult.Ok($"Order #{order.Id} status: {order.Status}");
     }
 
-    private void ReviewProducts(Customer customer)
+    private CommandResult ReviewProducts(Customer customer)
     {
         var products = _productService.GetPurchasedProducts(customer).ToList();
         if (products.Count == 0)
         {
-            Console.WriteLine("No purchased products available for review.");
-            return;
+            return CommandResult.Ok("No purchased products available for review.");
         }
 
         Console.WriteLine("Purchased Products:");
@@ -272,6 +277,19 @@ public sealed class CustomerMenu
         var comment = InputHelper.ReadRequiredString("Comment: ");
 
         _productService.AddReview(productId, customer, rating, comment);
-        Console.WriteLine("Review submitted.");
+        return CommandResult.Ok("Review submitted.");
+    }
+
+    private CommandResult CancelOrder(Customer customer)
+    {
+        var orderId = InputHelper.ReadInt("Order ID to cancel: ", 1);
+        var refundPayment = _orderService.CancelOrder(customer, orderId);
+
+        if (refundPayment.Status == PaymentStatus.Refunded)
+        {
+            return CommandResult.Ok($"Order cancelled and wallet refunded by {refundPayment.Amount:C}. New wallet balance: {customer.WalletBalance:C}");
+        }
+
+        return CommandResult.Ok("Order cancelled successfully.");
     }
 }

@@ -1,18 +1,17 @@
 using OnlineShopping.Interfaces;
 using OnlineShopping.Models;
-using OnlineShopping.Utilities;
 
 namespace OnlineShopping.Services;
 
 public sealed class CartService : ICartService
 {
     private readonly IProductService _productService;
-    private readonly AppDataContext _context;
+    private readonly IRepositorySession _repositorySession;
 
-    public CartService(IProductService productService, AppDataContext context)
+    public CartService(IProductService productService, IRepositorySession repositorySession)
     {
         _productService = productService;
-        _context = context;
+        _repositorySession = repositorySession;
     }
 
     public Cart GetCart(Customer customer)
@@ -37,7 +36,7 @@ public sealed class CartService : ICartService
         if (existingItem is null)
         {
             customer.Cart.Items.Add(new CartItem(product, quantity));
-            _context.SaveChanges();
+            _repositorySession.SaveChanges();
             return;
         }
 
@@ -47,7 +46,7 @@ public sealed class CartService : ICartService
         }
 
         existingItem.Quantity += quantity;
-        _context.SaveChanges();
+        _repositorySession.SaveChanges();
     }
 
     public void UpdateCartItem(Customer customer, int productId, int quantity)
@@ -58,7 +57,7 @@ public sealed class CartService : ICartService
         if (quantity <= 0)
         {
             customer.Cart.Items.Remove(item);
-            _context.SaveChanges();
+            _repositorySession.SaveChanges();
             return;
         }
 
@@ -68,7 +67,7 @@ public sealed class CartService : ICartService
         }
 
         item.Quantity = quantity;
-        _context.SaveChanges();
+        _repositorySession.SaveChanges();
     }
 
     public void RemoveFromCart(Customer customer, int productId)
@@ -77,12 +76,12 @@ public sealed class CartService : ICartService
                    ?? throw new KeyNotFoundException("Product not found in cart.");
 
         customer.Cart.Items.Remove(item);
-        _context.SaveChanges();
+        _repositorySession.SaveChanges();
     }
 
     public void ClearCart(Customer customer)
     {
         customer.Cart.Items.Clear();
-        _context.SaveChanges();
+        _repositorySession.SaveChanges();
     }
 }

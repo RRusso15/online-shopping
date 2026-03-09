@@ -82,4 +82,25 @@ public static class InputHelper
             Console.WriteLine($"Enter a valid number between {min} and {max}, or leave blank.");
         }
     }
+
+    public static DateTime? ReadOptionalDate(string prompt)
+    {
+        while (true)
+        {
+            Console.Write(prompt);
+            var input = Console.ReadLine()?.Trim();
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return null;
+            }
+
+            if (DateTime.TryParse(input, out var value))
+            {
+                return value.Date;
+            }
+
+            Console.WriteLine("Enter a valid date (e.g. 2026-03-09) or leave blank.");
+        }
+    }
 }

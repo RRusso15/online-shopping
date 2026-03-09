@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using OnlineShopping.Interfaces;
+
 namespace OnlineShopping.Models;
 
 public sealed class Order
@@ -17,5 +20,12 @@ public sealed class Order
     public List<OrderItem> Items { get; }
     public decimal TotalAmount { get; }
     public DateTime OrderDate { get; }
-    public OrderStatus Status { get; set; }
+    [JsonInclude]
+    public OrderStatus Status { get; private set; }
+
+    public void UpdateStatus(OrderStatus newStatus, IOrderStatusTransitionPolicy transitionPolicy)
+    {
+        transitionPolicy.EnsureCanTransition(Status, newStatus);
+        Status = newStatus;
+    }
 }

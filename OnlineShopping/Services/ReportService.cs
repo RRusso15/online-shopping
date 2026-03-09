@@ -1,23 +1,23 @@
 using System.Text;
 using OnlineShopping.Interfaces;
 using OnlineShopping.Models;
-using OnlineShopping.Utilities;
 
 namespace OnlineShopping.Services;
 
 public sealed class ReportService : IReportService
 {
-    private readonly AppDataContext _context;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IProductRepository _productRepository;
 
-    public ReportService(AppDataContext context)
+    public ReportService(IOrderRepository orderRepository, IProductRepository productRepository)
     {
-        _context = context;
+        _orderRepository = orderRepository;
+        _productRepository = productRepository;
     }
 
-    public string GenerateSalesReport()
+    public string GenerateSalesReport(DateTime? fromDate = null, DateTime? toDate = null)
     {
-        var completedStatuses = new[] { OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Delivered };
-        var completedOrders = _context.Orders.Where(o => completedStatuses.Contains(o.Status)).ToList();
+        var completedOrders = GetCompletedOrders(fromDate, toDate);
 
         var totalSales = completedOrders.Sum(o => o.TotalAmount);
         var orderCount = completedOrders.Count;
@@ -40,7 +40,7 @@ public sealed class ReportService : IReportService
         var revenueByCategory = completedOrders
             .SelectMany(o => o.Items)
             .Join(
-                _context.Products,
+                _productRepository.GetAll(),
                 item => item.ProductId,
                 product => product.Id,
                 (item, product) => new { product.Category, item.Subtotal })
@@ -49,7 +49,7 @@ public sealed class ReportService : IReportService
             .OrderByDescending(x => x.Revenue)
             .ToList();
 
-        var lowStockProducts = _context.Products
+        var lowStockProducts = _productRepository.GetAll()
             .Where(p => p.StockQuantity <= 5)
             .OrderBy(p => p.StockQuantity)
             .ToList();
@@ -57,6 +57,10 @@ public sealed class ReportService : IReportService
         var sb = new StringBuilder();
         sb.AppendLine("=== SALES REPORT ===");
         sb.AppendLine($"Generated On: {DateTime.Now:g}");
+        if (fromDate.HasValue || toDate.HasValue)
+        {
+            sb.AppendLine($"Date Range: {fromDate?.ToString("yyyy-MM-dd") ?? "Any"} -> {toDate?.ToString("yyyy-MM-dd") ?? "Any"}");
+        }
         sb.AppendLine($"Total Sales: {totalSales:C}");
         sb.AppendLine($"Number of Orders: {orderCount}");
         sb.AppendLine();
@@ -103,5 +107,44 @@ public sealed class ReportService : IReportService
         }
 
         return sb.ToString();
+    }
+
+    public string ExportSalesReportCsv(string outputDirectory, DateTime? fromDate = null, DateTime? toDate = null)
+    {
+        if (string.IsNullOrWhiteSpace(outputDirectory))
+        {
+            throw new ArgumentException("Output directory is required.", nameof(outputDirectory));
+        }
+
+        var completedOrders = GetCompletedOrders(fromDate, toDate);
+        var lines = new List<string>
+        {
+            "OrderId,OrderDate,Customer,Status,TotalAmount"
+        };
+
+        foreach (var order in completedOrders)
+        {
+            lines.Add($"{order.Id},{order.OrderDate:yyyy-MM-dd HH:mm:ss},{Escape(order.CustomerUsername)},{order.Status},{order.TotalAmount:F2}");
+        }
+
+        Directory.CreateDirectory(outputDirectory);
+        var filePath = Path.Combine(outputDirectory, $"sales-report-{DateTime.Now:yyyyMMdd-HHmmss}.csv");
+        File.WriteAllLines(filePath, lines);
+        return filePath;
+    }
+
+    private List<Order> GetCompletedOrders(DateTime? fromDate, DateTime? toDate)
+    {
+        var completedStatuses = new[] { OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Delivered };
+        return _orderRepository.GetAll()
+            .Where(o => completedStatuses.Contains(o.Status))
+            .Where(o => !fromDate.HasValue || o.OrderDate.Date >= fromDate.Value.Date)
+            .Where(o => !toDate.HasValue || o.OrderDate.Date <= toDate.Value.Date)
+            .ToList();
+    }
+
+    private static string Escape(string value)
+    {
+        return value.Contains(',') ? $"\"{value}\"" : value;
     }
 }

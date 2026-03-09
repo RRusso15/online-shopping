@@ -2,6 +2,8 @@ namespace OnlineShopping.Models;
 
 public enum PaymentStatus
 {
-    Success = 1,
-    Failed = 2
+    Pending = 1,
+    Success = 2,
+    Failed = 3,
+    Refunded = 4
 }

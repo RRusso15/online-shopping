@@ -1,16 +1,17 @@
 using OnlineShopping.Interfaces;
 using OnlineShopping.Models;
-using OnlineShopping.Utilities;
 
 namespace OnlineShopping.Services;
 
 public sealed class PaymentService : IPaymentService
 {
-    private readonly AppDataContext _context;
+    private readonly IPaymentRepository _paymentRepository;
+    private readonly IRepositorySession _repositorySession;
 
-    public PaymentService(AppDataContext context)
+    public PaymentService(IPaymentRepository paymentRepository, IRepositorySession repositorySession)
     {
-        _context = context;
+        _paymentRepository = paymentRepository;
+        _repositorySession = repositorySession;
     }
 
     public void AddWalletFunds(Customer customer, decimal amount)
@@ -21,37 +22,23 @@ public sealed class PaymentService : IPaymentService
         }
 
         customer.WalletBalance += amount;
-        _context.SaveChanges();
+        _repositorySession.SaveChanges();
     }
 
-    public Payment ProcessPayment(Customer customer, Order order)
+    public Payment RefundToWallet(Customer customer, Order order, string reason)
     {
-        if (customer.WalletBalance < order.TotalAmount)
-        {
-            var failed = new Payment(
-                _context.NextPaymentId(),
-                order.Id,
-                customer.Username,
-                order.TotalAmount,
-                PaymentStatus.Failed,
-                "Insufficient wallet funds.");
+        customer.WalletBalance += order.TotalAmount;
 
-            _context.Payments.Add(failed);
-            _context.SaveChanges();
-            throw new InvalidOperationException("Insufficient wallet funds for checkout.");
-        }
-
-        customer.WalletBalance -= order.TotalAmount;
-        var success = new Payment(
-            _context.NextPaymentId(),
+        var refund = new Payment(
+            _paymentRepository.NextId(),
             order.Id,
             customer.Username,
             order.TotalAmount,
-            PaymentStatus.Success,
-            "Payment successful.");
+            PaymentStatus.Refunded,
+            reason);
 
-        _context.Payments.Add(success);
-        _context.SaveChanges();
-        return success;
+        _paymentRepository.Add(refund);
+        _repositorySession.SaveChanges();
+        return refund;
     }
 }

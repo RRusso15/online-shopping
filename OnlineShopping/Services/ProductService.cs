@@ -1,26 +1,32 @@
 using OnlineShopping.Interfaces;
 using OnlineShopping.Models;
-using OnlineShopping.Utilities;
 
 namespace OnlineShopping.Services;
 
 public sealed class ProductService : IProductService
 {
-    private readonly AppDataContext _context;
+    private readonly IProductRepository _productRepository;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IRepositorySession _repositorySession;
 
-    public ProductService(AppDataContext context)
+    public ProductService(
+        IProductRepository productRepository,
+        IOrderRepository orderRepository,
+        IRepositorySession repositorySession)
     {
-        _context = context;
+        _productRepository = productRepository;
+        _orderRepository = orderRepository;
+        _repositorySession = repositorySession;
     }
 
     public IEnumerable<Product> GetAllProducts()
     {
-        return _context.Products.OrderBy(p => p.Id);
+        return _productRepository.GetAll().OrderBy(p => p.Id);
     }
 
     public IEnumerable<Product> SearchProducts(string? keyword, string? category, decimal? minPrice, decimal? maxPrice)
     {
-        var query = _context.Products.AsEnumerable();
+        var query = _productRepository.GetAll();
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -49,7 +55,7 @@ public sealed class ProductService : IProductService
 
     public Product? GetProductById(int productId)
     {
-        return _context.Products.FirstOrDefault(p => p.Id == productId);
+        return _productRepository.GetById(productId);
     }
 
     public Product AddProduct(string name, string category, string description, decimal price, int stockQuantity)
@@ -79,9 +85,9 @@ public sealed class ProductService : IProductService
             throw new ArgumentException("Stock cannot be negative.", nameof(stockQuantity));
         }
 
-        var product = new Product(_context.NextProductId(), name.Trim(), category.Trim(), description.Trim(), price, stockQuantity);
-        _context.Products.Add(product);
-        _context.SaveChanges();
+        var product = new Product(_productRepository.NextId(), name.Trim(), category.Trim(), description.Trim(), price, stockQuantity);
+        _productRepository.Add(product);
+        _repositorySession.SaveChanges();
         return product;
     }
 
@@ -113,7 +119,7 @@ public sealed class ProductService : IProductService
         product.Category = category.Trim();
         product.Description = description.Trim();
         product.Price = price;
-        _context.SaveChanges();
+        _repositorySession.SaveChanges();
     }
 
     public bool DeleteProduct(int productId)
@@ -124,10 +130,10 @@ public sealed class ProductService : IProductService
             return false;
         }
 
-        var removed = _context.Products.Remove(product);
+        var removed = _productRepository.Remove(product);
         if (removed)
         {
-            _context.SaveChanges();
+            _repositorySession.SaveChanges();
         }
 
         return removed;
@@ -142,7 +148,7 @@ public sealed class ProductService : IProductService
 
         var product = GetProductById(productId) ?? throw new KeyNotFoundException("Product not found.");
         product.StockQuantity += quantityToAdd;
-        _context.SaveChanges();
+        _repositorySession.SaveChanges();
     }
 
     public void AddReview(int productId, Customer customer, int rating, string comment)
@@ -159,7 +165,7 @@ public sealed class ProductService : IProductService
 
         var product = GetProductById(productId) ?? throw new KeyNotFoundException("Product not found.");
 
-        var hasPurchased = _context.Orders
+        var hasPurchased = _orderRepository.GetByCustomerUsername(customer.Username)
             .Where(o => o.CustomerUsername.Equals(customer.Username, StringComparison.OrdinalIgnoreCase)
                         && o.Status != OrderStatus.Cancelled)
             .SelectMany(o => o.Items)
@@ -178,13 +184,13 @@ public sealed class ProductService : IProductService
             throw new InvalidOperationException("You have already reviewed this product.");
         }
 
-        product.Reviews.Add(new Review(_context.NextReviewId(), productId, customer.Username, rating, comment.Trim()));
-        _context.SaveChanges();
+        product.Reviews.Add(new Review(_productRepository.NextReviewId(), productId, customer.Username, rating, comment.Trim()));
+        _repositorySession.SaveChanges();
     }
 
     public IEnumerable<Product> GetLowStockProducts(int threshold)
     {
-        return _context.Products
+        return _productRepository.GetAll()
             .Where(p => p.StockQuantity <= threshold)
             .OrderBy(p => p.StockQuantity)
             .ThenBy(p => p.Name)
@@ -193,7 +199,7 @@ public sealed class ProductService : IProductService
 
     public IEnumerable<Product> GetPurchasedProducts(Customer customer)
     {
-        var purchasedIds = _context.Orders
+        var purchasedIds = _orderRepository.GetByCustomerUsername(customer.Username)
             .Where(o => o.CustomerUsername.Equals(customer.Username, StringComparison.OrdinalIgnoreCase)
                         && o.Status != OrderStatus.Cancelled)
             .SelectMany(o => o.Items)
@@ -201,6 +207,6 @@ public sealed class ProductService : IProductService
             .Distinct()
             .ToHashSet();
 
-        return _context.Products.Where(p => purchasedIds.Contains(p.Id)).OrderBy(p => p.Name);
+        return _productRepository.GetAll().Where(p => purchasedIds.Contains(p.Id)).OrderBy(p => p.Name);
     }
 }
