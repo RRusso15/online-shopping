@@ -27,7 +27,7 @@ public sealed class CustomerMenu
     {
         while (true)
         {
-            Console.WriteLine();
+            Console.Clear();
             Console.WriteLine("=== CUSTOMER MENU ===");
             Console.WriteLine("1. Browse Products");
             Console.WriteLine("2. Search Products");

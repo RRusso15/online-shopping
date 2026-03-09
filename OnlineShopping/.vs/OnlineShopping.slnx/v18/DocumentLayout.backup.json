@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|c:\\users\\rusell\\desktop\\dev\\gradprogram\\onlineshoppingconsoleapp\\online-shopping\\onlineshopping\\menus\\adminmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|solutionrelative:menus\\adminmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|c:\\users\\rusell\\desktop\\dev\\gradprogram\\onlineshoppingconsoleapp\\online-shopping\\onlineshopping\\menus\\customermenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|solutionrelative:menus\\customermenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|c:\\users\\rusell\\desktop\\dev\\gradprogram\\onlineshoppingconsoleapp\\online-shopping\\onlineshopping\\menus\\mainmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|solutionrelative:menus\\mainmenu.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|c:\\users\\rusell\\desktop\\dev\\gradprogram\\onlineshoppingconsoleapp\\online-shopping\\onlineshopping\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{404087FA-F4A6-AAF3-11C0-A28811109AA2}|OnlineShopping.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -14,17 +26,56 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainMenu.cs",
+              "DocumentMoniker": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Menus\\MainMenu.cs",
+              "RelativeDocumentMoniker": "Menus\\MainMenu.cs",
+              "ToolTip": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Menus\\MainMenu.cs",
+              "RelativeToolTip": "Menus\\MainMenu.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEUAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-09T06:53:46.564Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CustomerMenu.cs",
+              "DocumentMoniker": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Menus\\CustomerMenu.cs",
+              "RelativeDocumentMoniker": "Menus\\CustomerMenu.cs",
+              "ToolTip": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Menus\\CustomerMenu.cs",
+              "RelativeToolTip": "Menus\\CustomerMenu.cs",
+              "ViewState": "AgIAAP8AAAAAAAAAAAAiwB0AAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-09T06:53:38.925Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "AdminMenu.cs",
+              "DocumentMoniker": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Menus\\AdminMenu.cs",
+              "RelativeDocumentMoniker": "Menus\\AdminMenu.cs",
+              "ToolTip": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Menus\\AdminMenu.cs",
+              "RelativeToolTip": "Menus\\AdminMenu.cs",
+              "ViewState": "AgIAADkAAAAAAAAAAAAYwBYAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-09T06:48:42.645Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Program.cs*",
-              "RelativeToolTip": "Program.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\Rusell\\Desktop\\Dev\\GradProgram\\OnlineShoppingConsoleApp\\online-shopping\\OnlineShopping\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAiwBEAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-08T21:57:42.742Z",
               "EditorCaption": ""

@@ -21,7 +21,7 @@ public sealed class MainMenu
     {
         while (true)
         {
-            Console.WriteLine();
+            Console.Clear();
             Console.WriteLine("=== MAIN MENU ===");
             Console.WriteLine("1. Register");
             Console.WriteLine("2. Login");
@@ -67,7 +67,7 @@ public sealed class MainMenu
 
     private void Login()
     {
-        Console.WriteLine();
+        Console.Clear();
         Console.WriteLine("=== LOGIN ===");
         var username = InputHelper.ReadRequiredString("Username: ");
         var password = InputHelper.ReadRequiredString("Password: ");
