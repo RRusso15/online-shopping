@@ -9,12 +9,20 @@ public sealed class MainMenu
     private readonly IAuthService _authService;
     private readonly CustomerMenu _customerMenu;
     private readonly AdminMenu _adminMenu;
+    private readonly Dictionary<int, ICommand> _commands;
 
     public MainMenu(IAuthService authService, CustomerMenu customerMenu, AdminMenu adminMenu)
     {
         _authService = authService;
         _customerMenu = customerMenu;
         _adminMenu = adminMenu;
+
+        _commands = new Dictionary<int, ICommand>
+        {
+            [1] = new DelegateCommand("Register", Register),
+            [2] = new DelegateCommand("Login", Login),
+            [3] = new DelegateCommand("Exit", () => CommandResult.Exit("Goodbye."))
+        };
     }
 
     public void Run()
@@ -27,26 +35,35 @@ public sealed class MainMenu
             Console.WriteLine("2. Login");
             Console.WriteLine("3. Exit");
 
-            var choice = InputHelper.ReadInt("Choose an option: ", 1, 3);
-
-            switch (choice)
+            var choice = InputHelper.ReadInt("Choose an option: ", 1, _commands.Count);
+            var result = ExecuteCommand(_commands[choice]);
+            if (!string.IsNullOrWhiteSpace(result.Message))
             {
-                case 1:
-                    Register();
-                    InputHelper.Pause();
-                    break;
-                case 2:
-                    Login();
-                    InputHelper.Pause();
-                    break;
-                case 3:
-                    Console.WriteLine("Goodbye.");
-                    return;
+                Console.WriteLine(result.Message);
             }
+
+            if (result.ShouldExit)
+            {
+                return;
+            }
+
+            InputHelper.Pause();
         }
     }
 
-    private void Register()
+    private static CommandResult ExecuteCommand(ICommand command)
+    {
+        try
+        {
+            return command.Execute();
+        }
+        catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException || ex is FormatException)
+        {
+            return CommandResult.Fail($"Error: {ex.Message}");
+        }
+    }
+
+    private CommandResult Register()
     {
         Console.WriteLine();
         Console.WriteLine("=== REGISTER ===");
@@ -60,14 +77,15 @@ public sealed class MainMenu
         var role = roleChoice == 2 ? UserRole.Administrator : UserRole.Customer;
 
         var success = _authService.Register(username, password, role, out var message);
-        Console.WriteLine(message);
         if (success)
         {
-            Console.WriteLine("You can now login.");
+            return CommandResult.Ok($"{message}{Environment.NewLine}You can now login.");
         }
+
+        return CommandResult.Fail(message);
     }
 
-    private void Login()
+    private CommandResult Login()
     {
         Console.Clear();
         Console.WriteLine("=== LOGIN ===");
@@ -77,8 +95,7 @@ public sealed class MainMenu
         var user = _authService.Login(username, password);
         if (user is null)
         {
-            Console.WriteLine("Invalid credentials.");
-            return;
+            return CommandResult.Fail("Invalid credentials.");
         }
 
         Console.WriteLine($"Welcome {user.Username} ({user.Role}).");
@@ -91,5 +108,7 @@ public sealed class MainMenu
         {
             _adminMenu.Run(admin);
         }
+
+        return CommandResult.Ok();
     }
 }

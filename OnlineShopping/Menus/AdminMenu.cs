@@ -19,69 +19,64 @@ public sealed class AdminMenu
 
     public void Run(Administrator admin)
     {
+        var commands = BuildCommands();
+
         while (true)
         {
             Console.Clear();
             Console.WriteLine($"=== ADMIN MENU ({admin.Username}) ===");
-            Console.WriteLine("1. Add Product");
-            Console.WriteLine("2. Update Product");
-            Console.WriteLine("3. Delete Product");
-            Console.WriteLine("4. Restock Product");
-            Console.WriteLine("5. View Products");
-            Console.WriteLine("6. View Orders");
-            Console.WriteLine("7. Update Order Status");
-            Console.WriteLine("8. View Low Stock Products");
-            Console.WriteLine("9. Generate Sales Reports");
-            Console.WriteLine("10. Logout");
-
-            var choice = InputHelper.ReadInt("Choose an option: ", 1, 10);
-
-            try
+            foreach (var command in commands.OrderBy(c => c.Key))
             {
-                switch (choice)
-                {
-                    case 1:
-                        AddProduct();
-                        break;
-                    case 2:
-                        UpdateProduct();
-                        break;
-                    case 3:
-                        DeleteProduct();
-                        break;
-                    case 4:
-                        RestockProduct();
-                        break;
-                    case 5:
-                        ViewProducts();
-                        break;
-                    case 6:
-                        ViewOrders();
-                        break;
-                    case 7:
-                        UpdateOrderStatus();
-                        break;
-                    case 8:
-                        ViewLowStockProducts();
-                        break;
-                    case 9:
-                        GenerateReport();
-                        break;
-                    case 10:
-                        Console.WriteLine("Logged out.");
-                        return;
-                }
+                Console.WriteLine($"{command.Key}. {command.Value.Label}");
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException || ex is FormatException)
+
+            var choice = InputHelper.ReadInt("Choose an option: ", 1, commands.Count);
+            var result = ExecuteCommand(commands[choice]);
+            if (!string.IsNullOrWhiteSpace(result.Message))
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine(result.Message);
+            }
+
+            if (result.ShouldExit)
+            {
+                return;
             }
 
             InputHelper.Pause();
         }
     }
 
-    private void AddProduct()
+    private Dictionary<int, ICommand> BuildCommands()
+    {
+        return new Dictionary<int, ICommand>
+        {
+            [1] = new DelegateCommand("Add Product", AddProduct),
+            [2] = new DelegateCommand("Update Product", UpdateProduct),
+            [3] = new DelegateCommand("Delete Product", DeleteProduct),
+            [4] = new DelegateCommand("Restock Product", RestockProduct),
+            [5] = new DelegateCommand("View Products", ViewProducts),
+            [6] = new DelegateCommand("View Orders", ViewOrders),
+            [7] = new DelegateCommand("Update Order Status", UpdateOrderStatus),
+            [8] = new DelegateCommand("View Low Stock Products", ViewLowStockProducts),
+            [9] = new DelegateCommand("Generate Sales Report", GenerateReport),
+            [10] = new DelegateCommand("Export Sales Report CSV", ExportReportCsv),
+            [11] = new DelegateCommand("Logout", () => CommandResult.Exit("Logged out."))
+        };
+    }
+
+    private static CommandResult ExecuteCommand(ICommand command)
+    {
+        try
+        {
+            return command.Execute();
+        }
+        catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is KeyNotFoundException || ex is FormatException)
+        {
+            return CommandResult.Fail($"Error: {ex.Message}");
+        }
+    }
+
+    private CommandResult AddProduct()
     {
         var name = InputHelper.ReadRequiredString("Name: ");
         var category = InputHelper.ReadRequiredString("Category: ");
@@ -90,10 +85,10 @@ public sealed class AdminMenu
         var stock = InputHelper.ReadInt("Stock quantity: ", 0);
 
         var product = _productService.AddProduct(name, category, description, price, stock);
-        Console.WriteLine($"Product added with ID #{product.Id}.");
+        return CommandResult.Ok($"Product added with ID #{product.Id}.");
     }
 
-    private void UpdateProduct()
+    private CommandResult UpdateProduct()
     {
         var id = InputHelper.ReadInt("Product ID: ", 1);
         var existing = _productService.GetProductById(id) ?? throw new KeyNotFoundException("Product not found.");
@@ -111,55 +106,59 @@ public sealed class AdminMenu
         var updatedDescription = string.IsNullOrWhiteSpace(description) ? existing.Description : description.Trim();
 
         _productService.UpdateProduct(id, updatedName, updatedCategory, updatedDescription, updatedPrice);
-        Console.WriteLine("Product updated.");
+        return CommandResult.Ok("Product updated.");
     }
 
-    private void DeleteProduct()
+    private CommandResult DeleteProduct()
     {
         var id = InputHelper.ReadInt("Product ID: ", 1);
         var deleted = _productService.DeleteProduct(id);
-        Console.WriteLine(deleted ? "Product deleted." : "Product not found.");
+        return CommandResult.Ok(deleted ? "Product deleted." : "Product not found.");
     }
 
-    private void RestockProduct()
+    private CommandResult RestockProduct()
     {
         var id = InputHelper.ReadInt("Product ID: ", 1);
         var qty = InputHelper.ReadInt("Quantity to add: ", 1);
         _productService.RestockProduct(id, qty);
-        Console.WriteLine("Product restocked.");
+        return CommandResult.Ok("Product restocked.");
     }
 
-    private void ViewProducts()
+    private CommandResult ViewProducts()
     {
         var products = _productService.GetAllProducts().ToList();
         if (products.Count == 0)
         {
-            Console.WriteLine("No products found.");
-            return;
+            return CommandResult.Ok("No products found.");
         }
 
+        var lines = new List<string>();
         foreach (var p in products)
         {
-            Console.WriteLine($"#{p.Id} | {p.Name} | {p.Category} | {p.Price:C} | Stock: {p.StockQuantity} | Rating: {p.AverageRating:F1}");
+            lines.Add($"#{p.Id} | {p.Name} | {p.Category} | {p.Price:C} | Stock: {p.StockQuantity} | Rating: {p.AverageRating:F1}");
         }
+
+        return CommandResult.Ok(string.Join(Environment.NewLine, lines));
     }
 
-    private void ViewOrders()
+    private CommandResult ViewOrders()
     {
         var orders = _orderService.GetAllOrders().ToList();
         if (orders.Count == 0)
         {
-            Console.WriteLine("No orders found.");
-            return;
+            return CommandResult.Ok("No orders found.");
         }
 
+        var lines = new List<string>();
         foreach (var order in orders)
         {
-            Console.WriteLine($"Order #{order.Id} | Customer: {order.CustomerUsername} | {order.OrderDate:g} | {order.Status} | Total: {order.TotalAmount:C}");
+            lines.Add($"Order #{order.Id} | Customer: {order.CustomerUsername} | {order.OrderDate:g} | {order.Status} | Total: {order.TotalAmount:C}");
         }
+
+        return CommandResult.Ok(string.Join(Environment.NewLine, lines));
     }
 
-    private void UpdateOrderStatus()
+    private CommandResult UpdateOrderStatus()
     {
         var orderId = InputHelper.ReadInt("Order ID: ", 1);
         Console.WriteLine("Order Status:");
@@ -172,29 +171,53 @@ public sealed class AdminMenu
         var newStatus = (OrderStatus)statusChoice;
 
         _orderService.UpdateOrderStatus(orderId, newStatus);
-        Console.WriteLine("Order status updated.");
+        return CommandResult.Ok("Order status updated.");
     }
 
-    private void ViewLowStockProducts()
+    private CommandResult ViewLowStockProducts()
     {
         var threshold = InputHelper.ReadInt("Low-stock threshold: ", 0);
         var products = _productService.GetLowStockProducts(threshold).ToList();
 
         if (products.Count == 0)
         {
-            Console.WriteLine("No low-stock products found.");
-            return;
+            return CommandResult.Ok("No low-stock products found.");
         }
 
+        var lines = new List<string>();
         foreach (var product in products)
         {
-            Console.WriteLine($"#{product.Id} {product.Name} | Stock: {product.StockQuantity}");
+            lines.Add($"#{product.Id} {product.Name} | Stock: {product.StockQuantity}");
         }
+
+        return CommandResult.Ok(string.Join(Environment.NewLine, lines));
     }
 
-    private void GenerateReport()
+    private CommandResult GenerateReport()
     {
-        Console.WriteLine();
-        Console.WriteLine(_reportService.GenerateSalesReport());
+        var (fromDate, toDate) = ReadDateRange();
+        return CommandResult.Ok(_reportService.GenerateSalesReport(fromDate, toDate));
+    }
+
+    private CommandResult ExportReportCsv()
+    {
+        var outputDirectory = InputHelper.ReadRequiredString("Output directory (e.g. Reports): ");
+        var (fromDate, toDate) = ReadDateRange();
+        var filePath = _reportService.ExportSalesReportCsv(outputDirectory, fromDate, toDate);
+        return CommandResult.Ok($"Report exported successfully: {filePath}");
+    }
+
+    private static (DateTime? fromDate, DateTime? toDate) ReadDateRange()
+    {
+        Console.WriteLine("Leave date blank to include all dates.");
+        var fromDate = InputHelper.ReadOptionalDate("From date (yyyy-MM-dd): ");
+        var toDate = InputHelper.ReadOptionalDate("To date (yyyy-MM-dd): ");
+
+        if (fromDate.HasValue && toDate.HasValue && fromDate > toDate)
+        {
+            throw new ArgumentException("From date cannot be after To date.");
+        }
+
+        return (fromDate, toDate);
     }
 }

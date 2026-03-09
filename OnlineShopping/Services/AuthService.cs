@@ -1,16 +1,19 @@
 using OnlineShopping.Interfaces;
 using OnlineShopping.Models;
-using OnlineShopping.Utilities;
 
 namespace OnlineShopping.Services;
 
 public sealed class AuthService : IAuthService
 {
-    private readonly AppDataContext _context;
+    private readonly IUserRepository _userRepository;
+    private readonly IUserFactory _userFactory;
+    private readonly IRepositorySession _repositorySession;
 
-    public AuthService(AppDataContext context)
+    public AuthService(IUserRepository userRepository, IUserFactory userFactory, IRepositorySession repositorySession)
     {
-        _context = context;
+        _userRepository = userRepository;
+        _userFactory = userFactory;
+        _repositorySession = repositorySession;
     }
 
     public bool Register(string username, string password, UserRole role, out string message)
@@ -28,28 +31,23 @@ public sealed class AuthService : IAuthService
             return false;
         }
 
-        var exists = _context.Users.Any(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+        var exists = _userRepository.UsernameExists(username);
         if (exists)
         {
             message = "Username already exists.";
             return false;
         }
 
-        User user = role switch
-        {
-            UserRole.Administrator => new Administrator(_context.NextUserId(), username, password),
-            _ => new Customer(_context.NextUserId(), username, password)
-        };
+        var user = _userFactory.Create(_userRepository.NextId(), username, password, role);
 
-        _context.Users.Add(user);
-        _context.SaveChanges();
+        _userRepository.Add(user);
+        _repositorySession.SaveChanges();
         message = "Registration successful.";
         return true;
     }
 
     public User? Login(string username, string password)
     {
-        return _context.Users.FirstOrDefault(u =>
-            u.Username.Equals(username, StringComparison.OrdinalIgnoreCase) && u.Password == password);
+        return _userRepository.FindByCredentials(username, password);
     }
 }

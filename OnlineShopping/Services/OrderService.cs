@@ -1,21 +1,34 @@
 using OnlineShopping.Interfaces;
 using OnlineShopping.Models;
-using OnlineShopping.Utilities;
 
 namespace OnlineShopping.Services;
 
 public sealed class OrderService : IOrderService
 {
-    private readonly AppDataContext _context;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IPaymentStrategyFactory _paymentStrategyFactory;
     private readonly IPaymentService _paymentService;
+    private readonly IRepositorySession _repositorySession;
+    private readonly IOrderStatusTransitionPolicy _statusTransitionPolicy;
 
-    public OrderService(AppDataContext context, IPaymentService paymentService)
+    public OrderService(
+        IOrderRepository orderRepository,
+        IUserRepository userRepository,
+        IPaymentStrategyFactory paymentStrategyFactory,
+        IPaymentService paymentService,
+        IRepositorySession repositorySession,
+        IOrderStatusTransitionPolicy statusTransitionPolicy)
     {
-        _context = context;
+        _orderRepository = orderRepository;
+        _userRepository = userRepository;
+        _paymentStrategyFactory = paymentStrategyFactory;
         _paymentService = paymentService;
+        _repositorySession = repositorySession;
+        _statusTransitionPolicy = statusTransitionPolicy;
     }
 
-    public (Order order, Payment payment) Checkout(Customer customer)
+    public (Order order, Payment payment) Checkout(Customer customer, PaymentMethod paymentMethod = PaymentMethod.Wallet)
     {
         if (customer.Cart.Items.Count == 0)
         {
@@ -34,36 +47,61 @@ public sealed class OrderService : IOrderService
             .Select(i => new OrderItem(i.Product.Id, i.Product.Name, i.Product.Price, i.Quantity))
             .ToList();
 
-        var order = new Order(_context.NextOrderId(), customer.Username, orderItems);
-        _context.Orders.Add(order);
+        var order = new Order(_orderRepository.NextId(), customer.Username, orderItems);
+        _orderRepository.Add(order);
 
         try
         {
-            var payment = _paymentService.ProcessPayment(customer, order);
+            var paymentStrategy = _paymentStrategyFactory.Create(paymentMethod);
+            var payment = paymentStrategy.Process(customer, order);
 
             foreach (var cartItem in customer.Cart.Items)
             {
                 cartItem.Product.StockQuantity -= cartItem.Quantity;
             }
 
-            order.Status = OrderStatus.Paid;
+            if (payment.Status == PaymentStatus.Success)
+            {
+                order.UpdateStatus(OrderStatus.Paid, _statusTransitionPolicy);
+            }
+
             customer.Orders.Add(order);
             customer.Cart.Items.Clear();
-            _context.SaveChanges();
+            _repositorySession.SaveChanges();
 
             return (order, payment);
         }
         catch
         {
-            _context.Orders.Remove(order);
-            _context.SaveChanges();
+            _orderRepository.Remove(order);
+            _repositorySession.SaveChanges();
             throw;
         }
     }
 
+    public Payment CancelOrder(Customer customer, int orderId)
+    {
+        var order = GetOrderById(orderId) ?? throw new KeyNotFoundException("Order not found.");
+        if (!order.CustomerUsername.Equals(customer.Username, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("You can only cancel your own orders.");
+        }
+
+        var wasPaid = order.Status == OrderStatus.Paid;
+        order.UpdateStatus(OrderStatus.Cancelled, _statusTransitionPolicy);
+        _repositorySession.SaveChanges();
+
+        if (wasPaid)
+        {
+            return _paymentService.RefundToWallet(customer, order, "Order cancelled. Wallet refunded.");
+        }
+
+        return new Payment(0, order.Id, customer.Username, 0m, PaymentStatus.Pending, "Order cancelled. No wallet refund required.");
+    }
+
     public IEnumerable<Order> GetCustomerOrders(string username)
     {
-        return _context.Orders
+        return _orderRepository.GetByCustomerUsername(username)
             .Where(o => o.CustomerUsername.Equals(username, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(o => o.OrderDate)
             .ToList();
@@ -71,18 +109,33 @@ public sealed class OrderService : IOrderService
 
     public IEnumerable<Order> GetAllOrders()
     {
-        return _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
+        return _orderRepository.GetAll().OrderByDescending(o => o.OrderDate).ToList();
     }
 
     public Order? GetOrderById(int orderId)
     {
-        return _context.Orders.FirstOrDefault(o => o.Id == orderId);
+        return _orderRepository.GetById(orderId);
     }
 
     public void UpdateOrderStatus(int orderId, OrderStatus newStatus)
     {
         var order = GetOrderById(orderId) ?? throw new KeyNotFoundException("Order not found.");
-        order.Status = newStatus;
-        _context.SaveChanges();
+        var wasPaid = order.Status == OrderStatus.Paid;
+        order.UpdateStatus(newStatus, _statusTransitionPolicy);
+        _repositorySession.SaveChanges();
+
+        if (newStatus == OrderStatus.Cancelled && wasPaid)
+        {
+            var customer = FindCustomerByUsername(order.CustomerUsername);
+            if (customer is not null)
+            {
+                _paymentService.RefundToWallet(customer, order, "Admin cancelled paid order. Wallet refunded.");
+            }
+        }
+    }
+
+    private Customer? FindCustomerByUsername(string username)
+    {
+        return _userRepository.FindByUsername(username) as Customer;
     }
 }
