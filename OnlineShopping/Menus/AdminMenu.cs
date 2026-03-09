@@ -104,7 +104,7 @@ public sealed class AdminMenu
         var category = Console.ReadLine();
         Console.Write($"Description ({existing.Description}): ");
         var description = Console.ReadLine();
-        var updatedPrice = InputHelper.ReadOptionalDecimal($"Price ({existing.Price}): ", 0.01m) ?? existing.Price;
+        var updatedPrice = InputHelper.ReadOptionalDecimal($"Price ({existing.Price}): ", 0.01m, decimal.MaxValue) ?? existing.Price;
 
         var updatedName = string.IsNullOrWhiteSpace(name) ? existing.Name : name.Trim();
         var updatedCategory = string.IsNullOrWhiteSpace(category) ? existing.Category : category.Trim();
