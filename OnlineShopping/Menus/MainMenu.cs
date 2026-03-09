@@ -33,9 +33,11 @@ public sealed class MainMenu
             {
                 case 1:
                     Register();
+                    InputHelper.Pause();
                     break;
                 case 2:
                     Login();
+                    InputHelper.Pause();
                     break;
                 case 3:
                     Console.WriteLine("Goodbye.");

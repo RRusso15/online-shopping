@@ -90,6 +90,8 @@ public sealed class CustomerMenu
             {
                 Console.WriteLine($"Error: {ex.Message}");
             }
+
+            InputHelper.Pause();
         }
     }
 

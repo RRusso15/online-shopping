@@ -2,6 +2,13 @@ namespace OnlineShopping.Utilities;
 
 public static class InputHelper
 {
+    public static void Pause(string message = "Press Enter to continue...")
+    {
+        Console.WriteLine();
+        Console.Write(message);
+        Console.ReadLine();
+    }
+
     public static string ReadRequiredString(string prompt)
     {
         while (true)
@@ -52,6 +59,11 @@ public static class InputHelper
 
     public static decimal? ReadOptionalDecimal(string prompt)
     {
+        return ReadOptionalDecimal(prompt, decimal.MinValue, decimal.MaxValue);
+    }
+
+    public static decimal? ReadOptionalDecimal(string prompt, decimal min, decimal max)
+    {
         while (true)
         {
             Console.Write(prompt);
@@ -62,12 +74,12 @@ public static class InputHelper
                 return null;
             }
 
-            if (decimal.TryParse(input, out var value))
+            if (decimal.TryParse(input, out var value) && value >= min && value <= max)
             {
                 return value;
             }
 
-            Console.WriteLine("Enter a valid number or leave blank.");
+            Console.WriteLine($"Enter a valid number between {min} and {max}, or leave blank.");
         }
     }
 }

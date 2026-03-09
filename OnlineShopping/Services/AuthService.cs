@@ -21,6 +21,13 @@ public sealed class AuthService : IAuthService
             return false;
         }
 
+        username = username.Trim();
+        if (password.Length < 6)
+        {
+            message = "Password must be at least 6 characters.";
+            return false;
+        }
+
         var exists = _context.Users.Any(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
         if (exists)
         {
@@ -30,8 +37,8 @@ public sealed class AuthService : IAuthService
 
         User user = role switch
         {
-            UserRole.Administrator => new Administrator(_context.NextUserId(), username.Trim(), password),
-            _ => new Customer(_context.NextUserId(), username.Trim(), password)
+            UserRole.Administrator => new Administrator(_context.NextUserId(), username, password),
+            _ => new Customer(_context.NextUserId(), username, password)
         };
 
         _context.Users.Add(user);

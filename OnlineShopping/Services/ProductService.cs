@@ -54,6 +54,21 @@ public sealed class ProductService : IProductService
 
     public Product AddProduct(string name, string category, string description, decimal price, int stockQuantity)
     {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Product name is required.", nameof(name));
+        }
+
+        if (string.IsNullOrWhiteSpace(category))
+        {
+            throw new ArgumentException("Category is required.", nameof(category));
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("Description is required.", nameof(description));
+        }
+
         if (price <= 0)
         {
             throw new ArgumentException("Price must be greater than zero.", nameof(price));
@@ -64,7 +79,7 @@ public sealed class ProductService : IProductService
             throw new ArgumentException("Stock cannot be negative.", nameof(stockQuantity));
         }
 
-        var product = new Product(_context.NextProductId(), name, category, description, price, stockQuantity);
+        var product = new Product(_context.NextProductId(), name.Trim(), category.Trim(), description.Trim(), price, stockQuantity);
         _context.Products.Add(product);
         _context.SaveChanges();
         return product;
@@ -74,14 +89,29 @@ public sealed class ProductService : IProductService
     {
         var product = GetProductById(productId) ?? throw new KeyNotFoundException("Product not found.");
 
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Product name is required.", nameof(name));
+        }
+
+        if (string.IsNullOrWhiteSpace(category))
+        {
+            throw new ArgumentException("Category is required.", nameof(category));
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("Description is required.", nameof(description));
+        }
+
         if (price <= 0)
         {
             throw new ArgumentException("Price must be greater than zero.", nameof(price));
         }
 
-        product.Name = name;
-        product.Category = category;
-        product.Description = description;
+        product.Name = name.Trim();
+        product.Category = category.Trim();
+        product.Description = description.Trim();
         product.Price = price;
         _context.SaveChanges();
     }
@@ -117,6 +147,11 @@ public sealed class ProductService : IProductService
 
     public void AddReview(int productId, Customer customer, int rating, string comment)
     {
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            throw new ArgumentException("Review comment is required.", nameof(comment));
+        }
+
         if (rating is < 1 or > 5)
         {
             throw new ArgumentException("Rating must be between 1 and 5.", nameof(rating));
@@ -143,7 +178,7 @@ public sealed class ProductService : IProductService
             throw new InvalidOperationException("You have already reviewed this product.");
         }
 
-        product.Reviews.Add(new Review(_context.NextReviewId(), productId, customer.Username, rating, comment));
+        product.Reviews.Add(new Review(_context.NextReviewId(), productId, customer.Username, rating, comment.Trim()));
         _context.SaveChanges();
     }
 

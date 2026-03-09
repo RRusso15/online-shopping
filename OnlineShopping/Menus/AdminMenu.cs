@@ -76,6 +76,8 @@ public sealed class AdminMenu
             {
                 Console.WriteLine($"Error: {ex.Message}");
             }
+
+            InputHelper.Pause();
         }
     }
 
@@ -102,13 +104,11 @@ public sealed class AdminMenu
         var category = Console.ReadLine();
         Console.Write($"Description ({existing.Description}): ");
         var description = Console.ReadLine();
-        Console.Write($"Price ({existing.Price}): ");
-        var priceInput = Console.ReadLine();
+        var updatedPrice = InputHelper.ReadOptionalDecimal($"Price ({existing.Price}): ", 0.01m) ?? existing.Price;
 
         var updatedName = string.IsNullOrWhiteSpace(name) ? existing.Name : name.Trim();
         var updatedCategory = string.IsNullOrWhiteSpace(category) ? existing.Category : category.Trim();
         var updatedDescription = string.IsNullOrWhiteSpace(description) ? existing.Description : description.Trim();
-        var updatedPrice = string.IsNullOrWhiteSpace(priceInput) ? existing.Price : decimal.Parse(priceInput!);
 
         _productService.UpdateProduct(id, updatedName, updatedCategory, updatedDescription, updatedPrice);
         Console.WriteLine("Product updated.");

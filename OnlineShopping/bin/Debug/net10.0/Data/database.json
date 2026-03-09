@@ -59,7 +59,7 @@
         "Category": "Electronics",
         "Description": "Noise-cancelling over-ear headphones",
         "Price": 249.50,
-        "StockQuantity": 25,
+        "StockQuantity": 35,
         "Reviews": {
           "$id": "12",
           "$values": []
