@@ -1,17 +1,30 @@
 using OnlineShopping.Interfaces;
 using OnlineShopping.Menus;
+using OnlineShopping.Repositories;
 using OnlineShopping.Services;
 using OnlineShopping.Utilities;
 
 var context = new AppDataContext();
 SeedData.Initialize(context);
 
-IAuthService authService = new AuthService(context);
-IProductService productService = new ProductService(context);
-ICartService cartService = new CartService(productService, context);
-IPaymentService paymentService = new PaymentService(context);
-IOrderService orderService = new OrderService(context, paymentService);
-IReportService reportService = new ReportService(context);
+IRepositorySession repositorySession = new RepositorySession(context);
+IUserRepository userRepository = new UserRepository(context);
+IProductRepository productRepository = new ProductRepository(context);
+IOrderRepository orderRepository = new OrderRepository(context);
+IPaymentRepository paymentRepository = new PaymentRepository(context);
+IUserFactory userFactory = new UserFactory();
+
+IOrderStatusTransitionPolicy orderStatusTransitionPolicy = new OrderStatusTransitionPolicy();
+IPaymentStrategy walletPaymentStrategy = new WalletPaymentStrategy(paymentRepository, repositorySession);
+IPaymentStrategy codPaymentStrategy = new CashOnDeliveryPaymentStrategy(paymentRepository, repositorySession);
+IPaymentStrategyFactory paymentStrategyFactory = new PaymentStrategyFactory([walletPaymentStrategy, codPaymentStrategy]);
+
+IPaymentService paymentService = new PaymentService(paymentRepository, repositorySession);
+IAuthService authService = new AuthService(userRepository, userFactory, repositorySession);
+IProductService productService = new ProductService(productRepository, orderRepository, repositorySession);
+ICartService cartService = new CartService(productService, repositorySession);
+IOrderService orderService = new OrderService(orderRepository, userRepository, paymentStrategyFactory, paymentService, repositorySession, orderStatusTransitionPolicy);
+IReportService reportService = new ReportService(orderRepository, productRepository);
 
 var customerMenu = new CustomerMenu(productService, cartService, orderService, paymentService);
 var adminMenu = new AdminMenu(productService, orderService, reportService);
